@@ -1,9 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { env } from "~/env";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
-import { constructors, drivers } from "~/server/db/schema";
-
-require("dotenv").config();
-// const Rapid_API_Key = process.env.Rapid_API_Key;
+import { drivers } from "~/server/db/schema";
 
 export const seedRouter = createTRPCRouter({
   create: publicProcedure.mutation(async ({ ctx }) => {
@@ -20,9 +20,7 @@ export const seedRouter = createTRPCRouter({
       const result = await response.json(); // Parse the JSON response
       const driversData = result.results; // Assuming the data is inside the "results" property
 
-      for (let i = 0; i < driversData.length; i++) {
-          const driver = driversData[i];
-
+      for (const driver of driversData) {
           // Extract relevant properties from the API response
           const driverName = driver.driver_name;
           const nationality = driver.nationality;
