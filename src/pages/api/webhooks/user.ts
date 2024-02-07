@@ -1,9 +1,9 @@
-import { Webhook } from 'svix'
-import { WebhookEvent } from '@clerk/nextjs/server'
-import { NextApiRequest, NextApiResponse } from 'next'
-import { buffer } from 'micro'
-import { db } from '~/server/db'
-import { user } from '~/server/db/schema'
+import { Webhook } from 'svix';
+import { type WebhookEvent } from '@clerk/nextjs/server';
+import { type NextApiRequest, type NextApiResponse } from 'next';
+import { buffer } from 'micro';
+import { db } from '~/server/db';
+import { user } from '~/server/db/schema';
  
 export const config = {
   api: {
@@ -13,7 +13,8 @@ export const config = {
  
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
-    return res.status(405)
+    res.status(405).end();
+    return;
   }
   // You can find this in the Clerk Dashboard -> Webhooks -> choose the webhook
   const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET
@@ -64,21 +65,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (eventType == "user.created"){
     try {
       // Insert the user data into your Drizzle-managed MySQL database
-      const insertedUser = await db.insert(user).values({
+      await db.insert(user).values({
         id: evt.data.id,
         userName: evt.data.username,
         budget: 100,
         driverChange: false,
       });
-  
-      console.log('User data inserted into Drizzle database:', insertedUser);
-      console.log(evt)
+
+
+      res.redirect('/');
     } catch (error) {
       console.error('Error inserting user data into Drizzle database:', error);
     }
    
   }
  
-  return new Response('', { status: 200 })
+  res.status(200).end();
 }
  

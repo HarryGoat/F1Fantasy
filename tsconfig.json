@@ -8,6 +8,7 @@
     "resolveJsonModule": true,
     "moduleDetection": "force",
     "isolatedModules": true,
+    
 
     /* Strictness */
     "strict": true,
@@ -37,6 +38,6 @@
     "**/*.cjs",
     "**/*.js",
     ".next/types/**/*.ts"
-  ],
+, "src/pages/api/webhooks/users.tsx"  ],
   "exclude": ["node_modules"]
 }
