@@ -62,9 +62,9 @@ export const userDrivers = createTable(
     isSubstitute: boolean("isSubstitute"),
     isCaptain: boolean("isCaptain")
   },
-  (userSchema) => ({
-    userIdIndex: index("id_idx").on(userSchema.userId),
-    idIndex: index("id_idx").on(userSchema.id),
+  (userDriversSchema) => ({
+    userIdIndex: index("id_idx").on(userDriversSchema.userId),
+    idIndex: index("id_idx").on(userDriversSchema.id),
   }),
 );
 
@@ -78,8 +78,8 @@ export const constructors = createTable(
     price: int("price"),
     points: int("points"),
   },
-  (driversSchema) => ({
-    idIndex: index("id_idx").on(driversSchema.id),
+  (constructorsSchema) => ({
+    idIndex: index("id_idx").on(constructorsSchema.id),
   }),
 );
 
