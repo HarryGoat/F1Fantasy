@@ -56,14 +56,13 @@ export const userDrivers = createTable(
   "userDrivers",
   {
     id: int("id").primaryKey().autoincrement(),
-    userId: varchar("userId", { length: 255 }),
-    driverId: varchar("driverId", { length: 255 }),
+    userName: varchar("userName", { length: 255 }),
+    driverName: varchar("driverName", { length: 255 }),
     driverOrder: int("driverOrder"),
     isSubstitute: boolean("isSubstitute"),
     isCaptain: boolean("isCaptain")
   },
   (userDriversSchema) => ({
-    userIdIndex: index("id_idx").on(userDriversSchema.userId),
     idIndex: index("id_idx").on(userDriversSchema.id),
   }),
 );
