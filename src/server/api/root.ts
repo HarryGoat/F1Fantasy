@@ -1,5 +1,6 @@
 import { createTRPCRouter } from "~/server/api/trpc";
 import { seedRouter } from "~/server/api/routers/seed";
+import { driverRouter } from "~/server/api/routers/selectDriver";
 
 /**
  * This is the primary router for your server.
@@ -8,6 +9,7 @@ import { seedRouter } from "~/server/api/routers/seed";
  */
 export const appRouter = createTRPCRouter({
     seed: seedRouter,
+    driver: driverRouter,
 });
 
 // export type definition of API
