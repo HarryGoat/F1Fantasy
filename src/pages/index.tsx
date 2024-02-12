@@ -23,6 +23,7 @@ function MyComponent() {
   if (driverObjects && driverObjects.length > 0) {
     for (let index = 0; index < driverObjects.length; index++) {
       const driver = driverObjects[index];
+  
       tableRows.push(
         <TableRow key={index}>
           <TableCell>{driver?.driverName}</TableCell>
@@ -36,6 +37,7 @@ function MyComponent() {
           </TableCell>
         </TableRow>
       );
+    
     }
   }
 
