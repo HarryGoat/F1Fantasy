@@ -7,7 +7,10 @@ import {
   mysqlTableCreator,
   varchar,
   boolean,
+  primaryKey,
 } from "drizzle-orm/mysql-core";
+
+import { relations } from 'drizzle-orm';
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -18,7 +21,7 @@ import {
 export const createTable = mysqlTableCreator((name) => `f1fantasy_${name}`);
 
 
-//user
+//users
 export const user = createTable(
   "user",
   {
@@ -32,8 +35,12 @@ export const user = createTable(
   }),
 );
 
+export const userRelations = relations(user, ({ many }) => ({
+  usersToDrivers: many(usersToDrivers),
+  usersToLeagues: many(usersToLeagues),
+}));
 
-//drivers
+//drivers - many to many
 export const drivers = createTable(
   "drivers",
   {
@@ -51,23 +58,66 @@ export const drivers = createTable(
   }),
 );
 
+export const driverRelations = relations(drivers, ({ many }) => ({
+  usersToDrivers: many(usersToDrivers),
+}));
 
-export const userDrivers = createTable(
-  "userDrivers",
+export const usersToDrivers = createTable('usersToDrivers', {
+  userId: int('user_id').notNull(),
+  driverId: int('group_id').notNull(),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.userId, t.driverId] }), 
+}));
+
+export const usersToDriversRelations = relations(usersToDrivers, ({ one }) => ({
+  driver: one(drivers, {
+    fields: [usersToDrivers.driverId],
+    references: [drivers.id],
+  }),
+  user: one(user, {
+    fields: [usersToDrivers.userId],
+    references: [user.id],
+  }),
+}));
+
+//leagues - many to many
+export const leagues = createTable(
+  "leagues",
   {
     id: int("id").primaryKey().autoincrement(),
-    userName: varchar("userName", { length: 255 }),
-    driverName: varchar("driverName", { length: 255 }),
-    driverOrder: int("driverOrder"),
-    isSubstitute: boolean("isSubstitute"),
-    isCaptain: boolean("isCaptain")
+    owner: varchar("owner", { length: 255 }),
+    name: varchar("name", { length: 255 }),
+    password: varchar("password", { length: 255 }),
   },
-  (userDriversSchema) => ({
-    idIndex: index("id_idx").on(userDriversSchema.id),
+  (leagueSchema) => ({
+    idIndex: index("id_idx").on(leagueSchema.id),
   }),
 );
 
-//constructors
+export const leagueRelations = relations(leagues, ({ many }) => ({
+  usersToLeagues: many(usersToLeagues),
+}));
+
+export const usersToLeagues = createTable('usersToLeagues', {
+  userId: int('user_id').notNull(),
+  leagueId: int('group_id').notNull(),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.userId, t.leagueId] }), 
+}));
+
+
+export const usersToLeaguesRelations = relations(usersToLeagues, ({ one }) => ({
+  league: one(leagues, {
+    fields: [usersToLeagues.leagueId],
+    references: [leagues.id],
+  }),
+  user: one(user, {
+    fields: [usersToLeagues.userId],
+    references: [user.id],
+  }),
+}));
+
+//constructor - one to one
 export const constructors = createTable(
   "constructors",
   {
@@ -93,36 +143,5 @@ export const userConstructor = createTable(
   (userConstructorSchema) => ({
     userIdIndex: index("id_idx").on(userConstructorSchema.userId),
     idIndex: index("id_idx").on(userConstructorSchema.id),
-  }),
-);
-
-
-
-//leagues
-export const leagues = createTable(
-  "leagues",
-  {
-    id: int("id").primaryKey().autoincrement(),
-    owner: varchar("owner", { length: 255 }),
-    name: varchar("name", { length: 255 }),
-    password: varchar("password", { length: 255 }),
-    publicOrPrivate: boolean("publicOrPrivate"),
-  },
-  (leagueSchema) => ({
-    idIndex: index("id_idx").on(leagueSchema.id),
-  }),
-);
-
-export const UserLeagueLink = createTable(
-  "UserLeagueLink",
-  {
-    id: int("id").primaryKey().autoincrement(),
-    leagueId: int("leagueId").notNull(),
-    userId: int("userId").notNull(),
-  },
-  (UserLeagueLinkSchema) => ({
-    idIndex: index("id_idx").on(UserLeagueLinkSchema.id),
-    leagueIdIndex: index("leagueId_idx").on(UserLeagueLinkSchema.leagueId),
-    userIdIndex: index("userId_idx").on(UserLeagueLinkSchema.userId),
   }),
 );

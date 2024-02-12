@@ -30,6 +30,19 @@ export const driverRouter = createTRPCRouter({
         const affordableDrivers = await ctx.db.query.drivers.findMany({
             where: lt(drivers.price, userBudget)
           })
+
+        const lol = await ctx.db.query.user.findFirst({
+          where: (user, {eq}) => eq(user.id, ctx.userId),
+          with: {
+            usersToDrivers: {
+              with: {driver: true}
+            }
+          }
+        })
+        
+        const firstDriver = lol?.usersToDrivers[0]?.driver
+
+
         return affordableDrivers;
     }),
 
