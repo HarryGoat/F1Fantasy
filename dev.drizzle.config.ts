@@ -5,9 +5,7 @@ import productionDrizzleConfig from "./drizzle.config"
 
 export default {
     ...productionDrizzleConfig,
-  dbCredentials: {
-    uri: env.DEV_DATABASE_URL,
-  },
+
 
 
 } satisfies Config;

@@ -29,17 +29,21 @@ export const user = createTable(
     userName: varchar("userName", { length: 255 }),
     budget: int("budget"),
     driverChange: boolean("driverChange"),
+    constructorId: int('constructorId'),
   },
   (userSchema) => ({
     idIndex: index("id_idx").on(userSchema.id),
   }),
 );
 
-export const userRelations = relations(user, ({ many }) => ({
+export const usersRelations = relations(user, ({ one, many }) => ({
+  constructor: one(constructors, {
+    fields: [user.constructorId], 
+    references: [constructors.id], 
+  }),
   usersToDrivers: many(usersToDrivers),
   usersToLeagues: many(usersToLeagues),
 }));
-
 //drivers - many to many
 export const drivers = createTable(
   "drivers",
@@ -63,10 +67,11 @@ export const driverRelations = relations(drivers, ({ many }) => ({
 }));
 
 export const usersToDrivers = createTable('usersToDrivers', {
-  userId: int('user_id').notNull(),
+  userId: varchar("user_id", { length: 255 }).notNull(),
   driverId: int('group_id').notNull(),
+  order: int("order").notNull(), 
 }, (t) => ({
-  pk: primaryKey({ columns: [t.userId, t.driverId] }), 
+  pk: primaryKey({ columns: [t.userId, t.order] }), 
 }));
 
 export const usersToDriversRelations = relations(usersToDrivers, ({ one }) => ({
@@ -127,21 +132,7 @@ export const constructors = createTable(
     price: int("price"),
     points: int("points"),
   },
-  (constructorsSchema) => ({
-    idIndex: index("id_idx").on(constructorsSchema.id),
-  }),
-);
-
-
-export const userConstructor = createTable(
-  "userConstructor",
-  {
-    id: int("id").primaryKey().autoincrement(),
-    userId: varchar("userId", { length: 255 }),
-    constructorId: varchar("driverId", { length: 255 }),
-  },
-  (userConstructorSchema) => ({
-    userIdIndex: index("id_idx").on(userConstructorSchema.userId),
-    idIndex: index("id_idx").on(userConstructorSchema.id),
+  (constructorSchema) => ({
+    idIndex: index("id_idx").on(constructorSchema.id),
   }),
 );
