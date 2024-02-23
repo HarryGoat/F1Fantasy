@@ -2,7 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { constructors, drivers, user, usersToDrivers } from "~/server/db/schema";
 import { db } from "~/server/db";
-import { type InferSelectModel, asc, eq, lt, and, ne } from "drizzle-orm";
+import { type InferSelectModel, asc, eq, lt, and, notInArray } from "drizzle-orm";
 
 //adjust budget by getting driver details and finding price. if the user already has a driver, than only subtract/add the difference
 //add the driver to the userDriver database
@@ -15,7 +15,7 @@ async function getUserBudget(userId: string) {
 }
 
 async function getCurrentDriverPrice(order: number, userId: string) {
-  const currentDriverId = (await checkUserHasDriver(order, userId))!.driverId;
+  const currentDriverId = (await checkUserHasCurrentDriver(order, userId))!.driverId;
 
   const currentDriverPrice = currentDriverId ? (await db.query.drivers.findFirst({
     where: eq(drivers.id, currentDriverId)
@@ -24,7 +24,7 @@ async function getCurrentDriverPrice(order: number, userId: string) {
   return currentDriverPrice;
 }
 
-async function checkUserHasDriver(order: number, userId: string) {
+async function checkUserHasCurrentDriver(order: number, userId: string) {
   const userHasDriver = (await db.query.usersToDrivers.findFirst({
     where: and(
       eq(usersToDrivers.userId, userId),
@@ -34,6 +34,15 @@ async function checkUserHasDriver(order: number, userId: string) {
   return userHasDriver;
 }
 
+
+async function getAllDrivers(userId: string) {
+  const userHasDriver = await db.select({
+    driverId: usersToDrivers.driverId
+  }).from(usersToDrivers).where(
+      eq(usersToDrivers.userId, userId));  
+
+  return userHasDriver.map((driver) => driver.driverId);
+}
 
 
 
@@ -51,7 +60,7 @@ export const driverRouter = createTRPCRouter({
 
     const res: {order: number, driver?: InferSelectModel<typeof drivers>}[] = [];
 
-    for(let i = 0; i < 6; i++){
+    for(let i = 0; i < 5; i++){
       res.push({order: i, driver: userDrivers[i]});
     }
 
@@ -60,29 +69,25 @@ export const driverRouter = createTRPCRouter({
   //change this so that the user it compares the drivers price with the users budget plus the driver they are replacing if the user already has a driver in this slot
   getDrivers: protectedProcedure.input(z.object({ order: z.number() })).query(async ({ input, ctx }) => {
     const userBudget = await getUserBudget(ctx.userId);
-    
-    if (await checkUserHasDriver(input.order, ctx.userId)) {
-      // If the user has a driver in this slot, calculate the adjusted budget
-      const currentDriverPrice = (await getCurrentDriverPrice(input.order, ctx.userId))!;
-      const adjustedBudget = userBudget + currentDriverPrice;
-      const affordableDrivers = await ctx.db.query.drivers.findMany({
-        where: and(
-          lt(drivers.price, adjustedBudget),
-          ne(drivers.id, (await checkUserHasDriver(input.order, ctx.userId))!.driverId)
-          )
-      });
-      return affordableDrivers;
-    }
+    const userHasDriver = await checkUserHasCurrentDriver(input.order, ctx.userId);
+    const allDrivers = await getAllDrivers(ctx.userId);
 
-      const affordableDrivers = await ctx.db.query.drivers.findMany({
-        where: and(
-          lt(drivers.price, userBudget),
-          ne(drivers.id, (await checkUserHasDriver(input.order, ctx.userId))!.driverId)
-        )
-      });
-      return affordableDrivers;
+    // If the user already has a driver in this slot, include it in budget calculation
+    const currentDriverPrice = userHasDriver ? (await getCurrentDriverPrice(input.order, ctx.userId))! : 0;
+    const adjustedBudget = userBudget + currentDriverPrice;
+
+    // Find affordable drivers not already owned by the user
     
+    const affordableDrivers = await ctx.db.query.drivers.findMany({
+      where: and(
+        lt(drivers.price, adjustedBudget),
+        notInArray(drivers.id, allDrivers)
+      ),
+    });
+
+    return affordableDrivers;
 }),
+
 
 
     getConstructors: protectedProcedure.query(async ({ ctx }) => {
@@ -105,8 +110,9 @@ export const driverRouter = createTRPCRouter({
 
       const userBudget = await getUserBudget(ctx.userId);
 
-          if (await checkUserHasDriver(input.order, ctx.userId)) {
+          if (await checkUserHasCurrentDriver(input.order, ctx.userId)) {
             // If the user has a driver in this slot, calculate the adjusted budget
+            const currentDriverPrice = (await getCurrentDriverPrice(input.order, ctx.userId))!;
             await ctx.db.update(usersToDrivers).set(
               {
                 driverId: input.driverId,
@@ -117,7 +123,7 @@ export const driverRouter = createTRPCRouter({
                 eq(usersToDrivers.order, input.order)
               )
             );
-            const currentDriverPrice = (await getCurrentDriverPrice(input.order, ctx.userId))!;
+
             const updatedBudget = userBudget + currentDriverPrice - driverPrice;
             await db.update(user).set({ budget: updatedBudget }).where(eq(user.id, ctx.userId));
           }
@@ -134,3 +140,4 @@ export const driverRouter = createTRPCRouter({
           }
       }),
 });
+

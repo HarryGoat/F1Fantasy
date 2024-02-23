@@ -36,7 +36,9 @@ function ChangeDriverPopup({order}: {order: number}) {
           <TableCell>{driver?.position}</TableCell>
           <TableCell>{driver?.points}</TableCell>
           <TableCell>
-            <button onClick={() => addDrivers({ driverId: driver!.id, order: order })}>Select</button>
+            <button onClick={async () => { 
+              addDrivers({ driverId: driver!.id, order: order });
+            }}>Select</button>
           </TableCell>
         </TableRow>
       );
@@ -78,14 +80,14 @@ function DriverCard({ driver, order }: DriverCardProps) {
           <div className={`border rounded-lg p-4 flex flex-col items-center text-center relative z-40 ${selectDrivers ? 'darken-background' : ''}`}>
             <div style={{ width: "100px", height: "100px" }}>
             </div>
-            <button onClick={toggleSelectDrivers}>Select</button>
+            <button onClick={() => { toggleSelectDrivers();}}>Select Driver</button>
           </div>
   
           {selectDrivers && (
             <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center z-50">
               <div className="bg-white p-4 rounded-lg">
                 <ChangeDriverPopup order={order}/>
-                <button onClick={toggleSelectDrivers}>Confirm</button>
+                <button onClick={() => { toggleSelectDrivers(); window.location.reload(); }}>Confirm</button>
               </div>
             </div>
           )}
@@ -103,14 +105,14 @@ function DriverCard({ driver, order }: DriverCardProps) {
           <h2>{driver.driverName}</h2>
           </div>
           <h2 className="text-lg font-semibold mb-2">{driver.team}</h2>
-          <button onClick={toggleSelectDrivers}>Select</button>
+          <button onClick={toggleSelectDrivers}>Change Driver</button>
         </div>
 
         {selectDrivers && (
           <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center z-50">
             <div className="bg-white p-4 rounded-lg">
               <ChangeDriverPopup order={order}/>
-              <button onClick={toggleSelectDrivers}>Confirm</button>
+              <button onClick={() => { toggleSelectDrivers(); window.location.reload(); }}>Confirm</button>
             </div>
           </div>
         )}
@@ -131,13 +133,6 @@ export default function Home() {
           <DriverCard key={index} order={order} driver={driver}  />
         ))}
       </div>
-
-      <style jsx>{`
-        .darken-background {
-          background-color: rgba(0, 0, 0, 0.5);
-          pointer-events: none;
-        }
-      `}</style>
     </div>
   );
 }
