@@ -2,7 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { constructors, drivers, user, usersToDrivers } from "~/server/db/schema";
 import { db } from "~/server/db";
-import { type InferSelectModel, asc, eq, lt, and } from "drizzle-orm";
+import { type InferSelectModel, asc, eq, lt, and, ne } from "drizzle-orm";
 
 //adjust budget by getting driver details and finding price. if the user already has a driver, than only subtract/add the difference
 //add the driver to the userDriver database
@@ -36,6 +36,7 @@ async function checkUserHasDriver(order: number, userId: string) {
 
 
 
+
 export const driverRouter = createTRPCRouter({
 
   getMyDrivers: protectedProcedure.query(async ({ ctx }) => {
@@ -65,13 +66,19 @@ export const driverRouter = createTRPCRouter({
       const currentDriverPrice = (await getCurrentDriverPrice(input.order, ctx.userId))!;
       const adjustedBudget = userBudget + currentDriverPrice;
       const affordableDrivers = await ctx.db.query.drivers.findMany({
-        where: lt(drivers.price, adjustedBudget)
+        where: and(
+          lt(drivers.price, adjustedBudget),
+          ne(drivers.id, (await checkUserHasDriver(input.order, ctx.userId))!.driverId)
+          )
       });
       return affordableDrivers;
     }
 
       const affordableDrivers = await ctx.db.query.drivers.findMany({
-        where: lt(drivers.price, userBudget)
+        where: and(
+          lt(drivers.price, userBudget),
+          ne(drivers.id, (await checkUserHasDriver(input.order, ctx.userId))!.driverId)
+        )
       });
       return affordableDrivers;
     
