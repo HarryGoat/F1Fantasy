@@ -77,13 +77,22 @@ export const driverRouter = createTRPCRouter({
     const adjustedBudget = userBudget + currentDriverPrice;
 
     // Find affordable drivers not already owned by the user
-    
+//check if alldrivers is empty
+    if (allDrivers.length > 0){
+      const affordableDrivers = await ctx.db.query.drivers.findMany({
+        where: and(
+          lt(drivers.price, adjustedBudget),
+          notInArray(drivers.id, allDrivers)
+        ),
+      });
+      return affordableDrivers
+    }
     const affordableDrivers = await ctx.db.query.drivers.findMany({
-      where: and(
-        lt(drivers.price, adjustedBudget),
-        notInArray(drivers.id, allDrivers)
+      where: 
+        lt(drivers.price, adjustedBudget,
       ),
     });
+    
 
     return affordableDrivers;
 }),
