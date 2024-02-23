@@ -91,14 +91,6 @@ export const driverRouter = createTRPCRouter({
   addDrivers: protectedProcedure
     .input(z.object({ driverId: z.number(), order: z.number() }))
     .mutation(async({ input, ctx }) => {
-      // Add the driver to the user's drivers
-      await ctx.db.insert(usersToDrivers).values(
-        {
-          userId: ctx.userId,
-          driverId: input.driverId,
-          order: input.order,
-        }
-      );
 
       const driverPrice = (await db.query.drivers.findFirst({
         where: eq(drivers.id, input.driverId),
@@ -108,11 +100,28 @@ export const driverRouter = createTRPCRouter({
 
           if (await checkUserHasDriver(input.order, ctx.userId)) {
             // If the user has a driver in this slot, calculate the adjusted budget
+            await ctx.db.update(usersToDrivers).set(
+              {
+                driverId: input.driverId,
+              }
+            ).where(
+              and(
+                eq(usersToDrivers.userId, ctx.userId),  
+                eq(usersToDrivers.order, input.order)
+              )
+            );
             const currentDriverPrice = (await getCurrentDriverPrice(input.order, ctx.userId))!;
             const updatedBudget = userBudget + currentDriverPrice - driverPrice;
             await db.update(user).set({ budget: updatedBudget }).where(eq(user.id, ctx.userId));
           }
           else {
+            await ctx.db.insert(usersToDrivers).values(
+              {
+                userId: ctx.userId,
+                driverId: input.driverId,
+                order: input.order,
+              }
+            );
             const updatedBudget = userBudget - driverPrice;
             await db.update(user).set({ budget: updatedBudget }).where(eq(user.id, ctx.userId));
           }

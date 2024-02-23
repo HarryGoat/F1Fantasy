@@ -77,13 +77,6 @@ function DriverCard({ driver, order }: DriverCardProps) {
         <div className="relative">
           <div className={`border rounded-lg p-4 flex flex-col items-center text-center relative z-40 ${selectDrivers ? 'darken-background' : ''}`}>
             <div style={{ width: "100px", height: "100px" }}>
-              <Image
-                alt={`Driver ${order}`}
-                src="/placeholder.svg"
-                width={100}
-                height={100}
-                style={{ objectFit: "cover" }}
-              />
             </div>
             <button onClick={toggleSelectDrivers}>Select</button>
           </div>
@@ -107,7 +100,7 @@ function DriverCard({ driver, order }: DriverCardProps) {
       <div className="relative">
         <div className={`border rounded-lg p-4 flex flex-col items-center text-center relative z-40 ${selectDrivers ? 'darken-background' : ''}`}>
           <div style={{ width: "100px", height: "100px" }}>
-          <h2>Driver {order}: {driver.driverName}</h2>
+          <h2>{driver.driverName}</h2>
           </div>
           <h2 className="text-lg font-semibold mb-2">{driver.team}</h2>
           <button onClick={toggleSelectDrivers}>Select</button>
