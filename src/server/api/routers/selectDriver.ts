@@ -109,6 +109,12 @@ export const driverRouter = createTRPCRouter({
       return affordableConstructors;
   }),
 
+  displayUserBudget: protectedProcedure.query(async ({ ctx }) => {
+    const userBudget = await getUserBudget(ctx.userId);
+    return userBudget;
+}),
+
+
   addDrivers: protectedProcedure
     .input(z.object({ driverId: z.number(), order: z.number() }))
     .mutation(async({ input, ctx }) => {

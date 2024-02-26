@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import Image from "next/image";
 import { api } from "~/utils/api";
 import {
   Table,
@@ -32,7 +31,7 @@ function ChangeDriverPopup({order}: {order: number}) {
           <TableCell>{driver?.driverName}</TableCell>
           <TableCell>{driver?.team}</TableCell>
           <TableCell>{driver?.nationality}</TableCell>
-          <TableCell>{driver?.price}</TableCell>
+          <TableCell>${driver?.price}</TableCell>
           <TableCell>{driver?.position}</TableCell>
           <TableCell>{driver?.points}</TableCell>
           <TableCell>
@@ -124,10 +123,14 @@ function DriverCard({ driver, order }: DriverCardProps) {
 export default function Home() {
 
   const { data: driverObjects} = api.driver.getMyDrivers.useQuery();
+  const { data: userBudget} = api.driver.displayUserBudget.useQuery();
 
   return (
     <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8">
-      <h1 className="text-4xl font-bold mb-8">Fantasy F1 Driver Selection</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-4xl font-bold">Fantasy F1 Driver Selection</h1>
+        <div className="font-bold text-4xl">Budget: ${userBudget}</div>
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
         {driverObjects?.map(({driver, order}, index) => (
           <DriverCard key={index} order={order} driver={driver}  />
