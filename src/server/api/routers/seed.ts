@@ -39,7 +39,7 @@ export const seedRouter = createTRPCRouter({
         team: team,
         position: position,
         price: 0,
-        points: points,
+        totalPoints: points,
       });
     }
     console.log("Seeding Database Complete");

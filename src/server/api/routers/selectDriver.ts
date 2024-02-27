@@ -148,7 +148,7 @@ export const driverRouter = createTRPCRouter({
           );
 
         const updatedBudget = userBudget + currentDriverPrice - driverPrice;
-        await db
+        await ctx.db
           .update(user)
           .set({ budget: updatedBudget })
           .where(eq(user.id, ctx.userId));
@@ -159,7 +159,7 @@ export const driverRouter = createTRPCRouter({
           order: input.order,
         });
         const updatedBudget = userBudget - driverPrice;
-        await db
+        await ctx.db
           .update(user)
           .set({ budget: updatedBudget })
           .where(eq(user.id, ctx.userId));

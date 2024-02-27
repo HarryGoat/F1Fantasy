@@ -43,7 +43,8 @@ export const drivers = createTable("drivers", {
   team: varchar("team", { length: 255 }),
   position: int("position"),
   price: int("price"),
-  points: int("points"),
+  totalPoints: int("totalPoints"),
+  recentPoints: int("recentPoints"),
 });
 
 export const driverRelations = relations(drivers, ({ many }) => ({

@@ -35,7 +35,8 @@ function ChangeDriverPopup({ order }: { order: number }) {
           <TableCell>{driver?.nationality}</TableCell>
           <TableCell>${driver?.price}</TableCell>
           <TableCell>{driver?.position}</TableCell>
-          <TableCell>{driver?.points}</TableCell>
+          <TableCell>{driver?.totalPoints}</TableCell>
+          <TableCell>{driver?.recentPoints}</TableCell>
           <TableCell>
             <button
               onClick={async () => {
