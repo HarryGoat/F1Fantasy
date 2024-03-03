@@ -83,7 +83,7 @@ export const races = createTable("races", {
   track: varchar("track", { length: 255 }),
   country: varchar("country", { length: 255 }),
   completed: varchar("completed", { length: 255 }),
-  endDate: date("date"),
+  endDate: varchar("date", { length: 255 }),
   raceType: varchar("raceType", { length: 255 }),
 });
 
@@ -97,10 +97,8 @@ export const driversToRaces = createTable(
     driverId: int("driverId").notNull(),
     raceId: int("raceId").notNull(),
     position: int("position"),
-    stops: int("stops"),
     retired: int("retired"),
     fastestLap: float("fastestLap"),
-    gap: float("gap"),
   },
   (t) => ({
     pk: primaryKey({ columns: [t.driverId, t.raceId] }),

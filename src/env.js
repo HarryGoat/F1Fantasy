@@ -22,7 +22,6 @@ export const env = createEnv({
         "You forgot to change the default URL"
       ),
     CLERK_SECRET_KEY: z.string(),
-    F1_API_KEY: z.string(),
     NODE_ENV: z.enum(["development", "test", "production"]),
     WEBHOOK_SECRET: z.string(),
     Rapid_API_Key: z.string(),
@@ -47,7 +46,6 @@ export const env = createEnv({
     DATABASE_URL: process.env.DATABASE_URL,
     DEV_DATABASE_URL: process.env.DEV_DATABASE_URL,
     CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
-    F1_API_KEY: process.env.F1_API_KEY,
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
     NODE_ENV: process.env.NODE_ENV,
     WEBHOOK_SECRET: process.env.WEBHOOK_SECRET,

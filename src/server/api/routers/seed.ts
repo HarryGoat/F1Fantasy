@@ -58,9 +58,7 @@ export const seedRouter = createTRPCRouter({
     const result = await response.json(); // Parse the JSON response
     const raceData = result.results; // Assuming the data is inside the "results" property
     const raceSessions = [
-      "Qualifying 1",
-      "Qualifying 2",
-      "Qualifying 3",
+      "Grid",
       "Races",
     ];
 
