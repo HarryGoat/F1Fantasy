@@ -92,7 +92,6 @@ export const seedRouter = createTRPCRouter({
     }
     console.log("Seeding Database Complete");
   }),
-
   
 });
 

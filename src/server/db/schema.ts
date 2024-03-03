@@ -45,6 +45,8 @@ export const drivers = createTable("drivers", {
   price: int("price"),
   totalPoints: int("totalPoints"),
   recentPoints: int("recentPoints"),
+  totalFantasyPoints: int("totalFantasyPoints"),
+  recentFantasyPoints: int("recentFantasyPoints"),
 });
 
 export const driverRelations = relations(drivers, ({ many }) => ({
