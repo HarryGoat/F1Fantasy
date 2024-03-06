@@ -2,60 +2,40 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { drivers, user, usersToDrivers } from "~/server/db/schema";
 import { db } from "~/server/db";
-import {
-  type InferSelectModel,
-  asc,
-  eq,
-  lt,
-  and,
-  notInArray,
-} from "drizzle-orm";
+import { type InferSelectModel, asc, eq, lt, and, notInArray } from "drizzle-orm";
 
-//adjust budget by getting driver details and finding price. if the user already has a driver, than only subtract/add the difference
-//add the driver to the userDriver database
+// Retrieves the current budget for a specified user.
 async function getUserBudget(userId: string) {
-  const thisUserData = await db.query.user.findFirst({
-    where: eq(user.id, userId),
-  });
-  const budget = thisUserData!.budget!;
-  return budget;
+  const userData = await db.query.user.findFirst({ where: eq(user.id, userId) });
+  return userData!.budget!;
 }
 
+// Fetches the price of the driver currently selected by the user in a given order.
 async function getCurrentDriverPrice(order: number, userId: string) {
-  const currentDriverId = (await checkUserHasCurrentDriver(order, userId))!
-    .driverId;
-
-  const currentDriverPrice = currentDriverId
-    ? (await db.query.drivers.findFirst({
-        where: eq(drivers.id, currentDriverId),
-      }))!.price!
-    : undefined;
-
-  return currentDriverPrice;
+  const currentDriverId = (await checkUserHasCurrentDriver(order, userId))!.driverId;
+  return currentDriverId
+    ? (await db.query.drivers.findFirst({ where: eq(drivers.id, currentDriverId) }))!.price!
+    : 0;
 }
 
+// Determines whether a user has selected a driver for a specific order.
 async function checkUserHasCurrentDriver(order: number, userId: string) {
-  const userHasDriver = await db.query.usersToDrivers.findFirst({
-    where: and(
-      eq(usersToDrivers.userId, userId),
-      eq(usersToDrivers.order, order),
-    ),
+  return await db.query.usersToDrivers.findFirst({
+    where: and(eq(usersToDrivers.userId, userId), eq(usersToDrivers.order, order)),
   });
-  return userHasDriver;
 }
 
+// Lists all driver IDs already selected by the user.
 async function getAllDrivers(userId: string) {
-  const userHasDriver = await db
-    .select({
-      driverId: usersToDrivers.driverId,
-    })
+  const drivers = await db
+    .select({ driverId: usersToDrivers.driverId })
     .from(usersToDrivers)
     .where(eq(usersToDrivers.userId, userId));
-
-  return userHasDriver.map((driver) => driver.driverId);
+  return drivers.map((driver) => driver.driverId);
 }
 
 export const driverRouter = createTRPCRouter({
+  // Retrieves drivers selected by the user, formatted for UI display.
   getMyDrivers: protectedProcedure.query(async ({ ctx }) => {
     const userDrivers = (
       await ctx.db.query.usersToDrivers.findMany({
@@ -63,102 +43,51 @@ export const driverRouter = createTRPCRouter({
         orderBy: [asc(usersToDrivers.order)],
         with: { driver: true },
       })
-    ).reduce(
-      (acc, userToDriver) => {
-        acc[userToDriver.order] = userToDriver.driver;
-        return acc;
-      },
-      {} as Record<number, InferSelectModel<typeof drivers> | undefined>,
-    );
+    ).reduce((acc, userToDriver) => {
+      acc[userToDriver.order] = userToDriver.driver;
+      return acc;
+    }, {} as Record<number, InferSelectModel<typeof drivers> | undefined>);
 
-    const res: { order: number; driver?: InferSelectModel<typeof drivers> }[] =
-      [];
-
-    for (let i = 0; i < 5; i++) {
-      res.push({ order: i, driver: userDrivers[i] });
-    }
-
-    return res;
+    return Array.from({ length: 5 }, (_, i) => ({ order: i, driver: userDrivers[i] }));
   }),
-  //change this so that the user it compares the drivers price with the users budget plus the driver they are replacing if the user already has a driver in this slot
+
+  // Lists drivers affordable and not already selected by the user, factoring in budget adjustments for driver changes.
   getDrivers: protectedProcedure
     .input(z.object({ order: z.number() }))
     .query(async ({ input, ctx }) => {
       const userBudget = await getUserBudget(ctx.userId);
-      const userHasDriver = await checkUserHasCurrentDriver(
-        input.order,
-        ctx.userId,
-      );
-      const allDrivers = await getAllDrivers(ctx.userId);
-
-      // If the user already has a driver in this slot, include it in budget calculation
-      const currentDriverPrice = userHasDriver
-        ? (await getCurrentDriverPrice(input.order, ctx.userId))!
-        : 0;
+      const currentDriverPrice = await getCurrentDriverPrice(input.order, ctx.userId);
       const adjustedBudget = userBudget + currentDriverPrice;
 
-      // Find affordable drivers not already owned by the user
-      //check if alldrivers is empty
-      if (allDrivers.length > 0) {
-        const affordableDrivers = await ctx.db.query.drivers.findMany({
-          where: and(
-            lt(drivers.price, adjustedBudget),
-            notInArray(drivers.id, allDrivers),
-          ),
-        });
-        return affordableDrivers;
-      }
-      const affordableDrivers = await ctx.db.query.drivers.findMany({
-        where: lt(drivers.price, adjustedBudget),
+      const allDrivers = await getAllDrivers(ctx.userId);
+      return await ctx.db.query.drivers.findMany({
+        where: and(
+          lt(drivers.price, adjustedBudget),
+          notInArray(drivers.id, allDrivers.length > 0 ? allDrivers : [0]) // Use [0] as a fallback to ensure query runs.
+        ),
       });
-
-      return affordableDrivers;
     }),
 
-
+  // Allows users to add a driver to their selection, updating their budget and replacing any existing driver if needed.
   addDrivers: protectedProcedure
     .input(z.object({ driverId: z.number(), order: z.number() }))
     .mutation(async ({ input, ctx }) => {
-      const driverPrice = (await ctx.db.query.drivers.findFirst({
-        where: eq(drivers.id, input.driverId),
-      }))!.price!;
-
+      const driverPrice = (await ctx.db.query.drivers.findFirst({ where: eq(drivers.id, input.driverId) }))!.price!;
       const userBudget = await getUserBudget(ctx.userId);
+      const currentDriverPrice = await getCurrentDriverPrice(input.order, ctx.userId);
 
-      if (await checkUserHasCurrentDriver(input.order, ctx.userId)) {
-        // If the user has a driver in this slot, calculate the adjusted budget
-        const currentDriverPrice = (await getCurrentDriverPrice(
-          input.order,
-          ctx.userId,
-        ))!;
-        await ctx.db
-          .update(usersToDrivers)
-          .set({
-            driverId: input.driverId,
-          })
-          .where(
-            and(
-              eq(usersToDrivers.userId, ctx.userId),
-              eq(usersToDrivers.order, input.order),
-            ),
-          );
+      // If user is replacing a driver, adjust budget accordingly, else just deduct the new driver's price.
+      const updatedBudget = currentDriverPrice > 0
+        ? userBudget + currentDriverPrice - driverPrice
+        : userBudget - driverPrice;
 
-        const updatedBudget = userBudget + currentDriverPrice - driverPrice;
-        await ctx.db
-          .update(user)
-          .set({ budget: updatedBudget })
-          .where(eq(user.id, ctx.userId));
+      if (currentDriverPrice > 0) {
+        await ctx.db.update(usersToDrivers).set({ driverId: input.driverId })
+          .where(and(eq(usersToDrivers.userId, ctx.userId), eq(usersToDrivers.order, input.order)));
       } else {
-        await ctx.db.insert(usersToDrivers).values({
-          userId: ctx.userId,
-          driverId: input.driverId,
-          order: input.order,
-        });
-        const updatedBudget = userBudget - driverPrice;
-        await ctx.db
-          .update(user)
-          .set({ budget: updatedBudget })
-          .where(eq(user.id, ctx.userId));
+        await ctx.db.insert(usersToDrivers).values({ userId: ctx.userId, driverId: input.driverId, order: input.order });
       }
+      
+      await ctx.db.update(user).set({ budget: updatedBudget }).where(eq(user.id, ctx.userId));
     }),
 });
