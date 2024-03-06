@@ -98,7 +98,6 @@ export const driversToRaces = createTable(
     raceId: int("raceId").notNull(),
     position: int("position"),
     retired: int("retired"),
-    fastestLap: float("fastestLap"),
   },
   (t) => ({
     pk: primaryKey({ columns: [t.driverId, t.raceId] }),

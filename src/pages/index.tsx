@@ -37,26 +37,27 @@ function ChangeDriverPopup({ order }: { order: number }) {
       const driver = driverObjects[index];
 
       tableRows.push(
-        <TableRow key={index}>
-          <TableCell>{driver?.driverName}</TableCell>
-          <TableCell>{driver?.team}</TableCell>
-          <TableCell>{driver?.nationality}</TableCell>
-          <TableCell>${driver?.price}</TableCell>
-          <TableCell>{driver?.position}</TableCell>
-          <TableCell>{driver?.totalFantasyPoints}</TableCell>
-          <TableCell>{driver?.recentFantasyPoints}</TableCell>
-          <TableCell>{driver?.totalPoints}</TableCell>
-          <TableCell>{driver?.recentPoints}</TableCell>
-          <TableCell>
-            <button
-              onClick={async () => {
-                addDrivers({ driverId: driver!.id, order: order });
-              }}
-            >
-              Select
-            </button>
-          </TableCell>
-        </TableRow>,
+      
+          <TableRow key={index}>
+            <TableCell>{driver?.driverName}</TableCell>
+            <TableCell>{driver?.team}</TableCell>
+            <TableCell>{driver?.nationality}</TableCell>
+            <TableCell>${driver?.price}</TableCell>
+            <TableCell>{driver?.position}</TableCell>
+            <TableCell>{driver?.totalFantasyPoints}</TableCell>
+            <TableCell>{driver?.recentFantasyPoints}</TableCell>
+            <TableCell>{driver?.totalPoints}</TableCell>
+            <TableCell>{driver?.recentPoints}</TableCell>
+            <TableCell>
+              <button
+                onClick={async () => {
+                  addDrivers({ driverId: driver!.id, order: order });
+                }}
+              >
+                Select
+              </button>
+            </TableCell>
+          </TableRow>
       );
     }
   }
@@ -64,6 +65,7 @@ function ChangeDriverPopup({ order }: { order: number }) {
   return (
     <div className="max-h-96 overflow-y-auto">
       {/* Set a maximum height and enable vertical scrolling */}
+
       <Table>
         <TableHeader>
           <TableRow>
@@ -93,7 +95,7 @@ function DriverCard({ driver, order }: DriverCardProps) {
   if (!driver) {
     return (
       <>
-        <div className="relative">
+        <div className="relative bg-white">
           <div
             className={`relative z-40 flex flex-col items-center rounded-lg border p-4 text-center ${selectDrivers ? "darken-background" : ""}`}
           >
@@ -131,7 +133,7 @@ function DriverCard({ driver, order }: DriverCardProps) {
     <>
       <div className="relative">
         <div
-          className={`relative z-40 flex flex-col items-center rounded-lg border p-4 text-center ${selectDrivers ? "darken-background" : ""}`}
+          className={`relative z-40 flex flex-col items-center rounded-lg border p-4 text-center bg-white ${selectDrivers ? "darken-background" : ""}`}
         >
           <div style={{ width: "100px", height: "100px" }}>
             <h2>{driver.driverName}</h2>
@@ -167,7 +169,7 @@ export default function Home() {
   const { data: userPoints } = api.user.displayUserPoints.useQuery();
 
   return (
-    <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
+    <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8 ">
       <div className="mb-8 flex items-center justify-between">
         <h1 className="text-4xl font-bold">Fantasy F1 Driver Selection</h1>
         <div className="text-right">

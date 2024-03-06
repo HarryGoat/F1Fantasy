@@ -61,22 +61,12 @@ async function automatedUpdates() {
         const driverId = driver.id;
         const position = driver.position;
         const retired = driver.retired;
-
-        const fastestLap: string = driver.time;
-        const lapTimeParts: string[] = fastestLap.split(":");
-        const minutes: number = parseInt(lapTimeParts[0]!);
-        const seconds: number = parseFloat(lapTimeParts[1]!);
-        const milliseconds: number = parseFloat(lapTimeParts[2]!);
-        const fastestLapSeconds: number =
-          minutes * 60 + seconds + milliseconds / 1000;
-
         // Insert data into  database
         await db.insert(driversToRaces).values({
           driverId: driverId,
           raceId: raceId,
           position: position,
           retired: retired,
-          fastestLap: fastestLapSeconds,
         });
       }
     }

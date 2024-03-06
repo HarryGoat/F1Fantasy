@@ -43,9 +43,10 @@ const MyApp: AppType = ({ Component, pageProps }) => {
   return (
     <>
       <ClerkProvider {...pageProps}>
+        <div className="bg-red-400 h-screen">
+
         <Component {...pageProps} />
-        <main>
-          <div className="fixed bottom-0 left-0 z-50 w-full border-t border-gray-200 bg-white dark:border-gray-600 dark:bg-gray-700">
+          <div className="fixed bottom-0 left-0 z-50 w-full border-t border-gray-200 bg-gray-200 dark:border-gray-600 dark:bg-gray-700">
             <div className="mx-auto grid h-full max-w-lg grid-cols-6">
               <SignInOrOutButton />
               <NavigationLink
@@ -79,7 +80,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
               />
             </div>
           </div>
-        </main>
+          </div>
       </ClerkProvider>
     </>
   );
